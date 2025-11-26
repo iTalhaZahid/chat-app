@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import ScreenWrapper from '../../components/ScreenWrapper'
 
 const WelcomeScreen = () => {
   return (
-    <View>
-      <Text>WelcomeScreen</Text>
-    </View>
+    <ScreenWrapper showPattern={true}>
+      <Text></Text>
+    </ScreenWrapper>
   )
 }
 

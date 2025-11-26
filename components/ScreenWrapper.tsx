@@ -1,4 +1,4 @@
-import { Dimensions, ImageBackground, Platform, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Dimensions, ImageBackground, Platform, StatusBar, View } from "react-native";
 import React from "react";
 import { ScreenWrapperProps } from "@/types";
 import { colors } from "@/constants/theme";
@@ -28,3 +28,5 @@ const ScreenWrapper = ({
         </ImageBackground>
     )
 }
+
+export default ScreenWrapper;

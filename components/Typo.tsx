@@ -1,0 +1,29 @@
+import { colors } from '@/constants/theme'
+import { TypoProps } from '@/types'
+import { verticalScale } from '@/utils/styling'
+import React from 'react'
+import { View, Text, TextStyle } from 'react-native'
+
+const Typo = ({
+    size = 16,
+    color = colors.text,
+    fontWeight = '400',
+    children,
+    style,
+    textProps = {}
+}: TypoProps) => {
+
+    const textStyle: TextStyle = {
+        fontSize:verticalScale(size),
+        color,
+        fontWeight
+    }
+    // render
+    return (
+        <View>
+            <Text style={[textStyle, style]} {...textProps}>{children}</Text>
+        </View>
+    )
+}
+
+export default Typo
