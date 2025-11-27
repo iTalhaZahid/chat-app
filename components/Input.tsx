@@ -10,7 +10,7 @@ const Input = (props: InputProps) => {
         <View style={[styles.container, props.containerStyle && props.containerStyle, isFocused && styles.primaryBorder]}>
             {props.icon && props.icon}
             <TextInput
-                style={styles.input}
+                style={[styles.input,props.inputStyle]}
                 placeholderTextColor={colors.neutral400}
                 ref={props.inputRef && props.inputRef}
                 onFocus={() => setIsFocused(true)}
