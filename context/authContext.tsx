@@ -1,7 +1,7 @@
 import { login, register } from "@/services/authService";
 import { AuthContextProps, DecodedTokenProps, UserProps } from "@/types";
 import { useRouter } from "expo-router";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from 'jwt-decode';
 
@@ -20,6 +20,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserProps | null>(null);
     const router = useRouter();
 
+    useEffect(() => {
+        loadToken();
+    },[])
+
+    const loadToken = async () => {
+        const storedToken = await AsyncStorage.getItem("token");
+        if (storedToken) {
+            try {
+                const decodedUser = jwtDecode<DecodedTokenProps>(storedToken); //decode token to get user info
+
+                if (decodedUser.exp && decodedUser.exp < Date.now() / 1000) {
+                    // Token has expired
+                    await AsyncStorage.removeItem("token");
+                    goToWelcomePage();
+                    return;
+                }
+
+                console.log("Decoded User: ", decodedUser);
+                setToken(storedToken);
+                setUser(decodedUser.user);
+                goToHomePage();
+            } catch (error: any) {
+                goToWelcomePage();
+                console.log("Token Decoding Error: ", error);
+            }
+        }
+        else {
+            goToWelcomePage();
+        }
+    }
+
+    const goToWelcomePage = () => {
+        setTimeout(() => {
+            router.replace("/(auth)/welcome");
+
+        }, 1500);
+    }
+    const goToHomePage = () => {
+        setTimeout(() => {
+            router.replace("/(main)/home");
+        }, 1500);
+    }
+
     const updateToken = async (token: string) => {
         if (token) {
             setToken(token);
@@ -37,9 +80,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         router.replace("/(main)/home");
     }
 
-    const signUp= async (email: string, password: string, name: string, avatar?: string | null) => {
+    const signUp = async (email: string, password: string, name: string, avatar?: string | null) => {
         // Perform SignUp Logic Here
-        const response = await register(email, password,name, avatar);
+        const response = await register(email, password, name, avatar);
         await updateToken(response.token);
         router.replace("/(main)/home");
     }
@@ -59,4 +102,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 }
 
-export const useAuth= () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext);

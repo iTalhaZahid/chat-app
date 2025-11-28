@@ -9,21 +9,30 @@ import * as Icons from 'phosphor-react-native'
 import { verticalScale } from '@/utils/styling'
 import { useRouter } from 'expo-router'
 import Button from '@/components/Button'
+import { useAuth } from '@/context/authContext'
 
 const LoginIn = () => {
   const emailRef = useRef("");
   const passwordRef = useRef("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
+  const { signIn } = useAuth();
 
   const handleSubmit = async () => {
     if (!emailRef.current || !passwordRef.current) {
       Alert.alert("Login", "Please fill all the fields");
       return;
     }
-     setIsLoading(true);
-    // Perform Signin Logic Here
+    try {
+       setIsLoading(true);
+       await signIn(emailRef.current, passwordRef.current);
+      // Perform Signin Logic Here
+    } catch (error:any) {
+       Alert.alert("Login", error.message || "Something went wrong");
+    }
+    finally{
+      setIsLoading(false);
+    }
   }
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? "padding" : "height"}>
