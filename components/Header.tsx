@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import { HeaderProps } from '@/types'
 import Typo from './Typo'
@@ -17,7 +17,7 @@ export default Header
 
 const styles = StyleSheet.create({
     container:{
-        width:100%,
+        width:'100%',
         alignItems:'center',
         flexDirection:'row',
         justifyContent:'space-between',
