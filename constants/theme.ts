@@ -41,6 +41,7 @@ export const spacingY = {
     _5:verticalScale(5),
     _7:verticalScale(7),
     _10:verticalScale(10),
+    _12:verticalScale(12),
     _15:verticalScale(15),
     _20:verticalScale(20),
     _25:verticalScale(25),
