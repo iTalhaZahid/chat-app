@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from 'jwt-decode';
+import { connectSocket } from "@/socket/socket";
 
 export const AuthContext = createContext<AuthContextProps>({
     token: null,
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         loadToken();
-    },[])
+    }, [])
 
     const loadToken = async () => {
         const storedToken = await AsyncStorage.getItem("token");
@@ -35,6 +36,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     await AsyncStorage.removeItem("token");
                     goToWelcomePage();
                     return;
+                }
+
+                // 🔗 connect socket here (token already in AsyncStorage)
+                try {
+                    await connectSocket();
+                } catch (err) {
+                    console.log("Socket connection failed on loadToken:", err);
                 }
 
                 console.log("Decoded User: ", decodedUser);

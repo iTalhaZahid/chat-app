@@ -17,11 +17,18 @@ export async function connectSocket(): Promise<Socket> {
 
         //wait for connection
 
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
             socket?.on("connect", () => {
                 console.log("Socket Connected", socket?.id);
+                resolve();
+            });
+
+            socket?.on("connect_error", (err) => {
+                console.log("Socket connect_error", err);
+                reject(err);
             });
         });
+
 
         //handle disconnection
         socket.on("disconnect", () => {
