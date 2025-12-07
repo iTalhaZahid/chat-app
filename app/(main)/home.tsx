@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { use, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import ScreenWrapper from '@/components/ScreenWrapper'
 import Typo from '@/components/Typo'
 import { useAuth } from '@/context/authContext'
@@ -10,49 +10,78 @@ import * as Icons from 'phosphor-react-native';
 import { useRouter } from 'expo-router'
 import ConversationItem from '@/components/ConversationItem'
 import Loading from '@/components/Loading'
+import { getConversations, newConversation } from '@/socket/socketEvents'
+import { ConversationProps, ResponseProps } from '@/types'
 
 const Home = () => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [conversationList, setConversationList] = useState<ConversationProps[]>([]);
 
-  const conversationList = [
-    {
-      name: 'John Doe',
-      type: 'direct',
-      lastMessage: {
-        sender: 'Alice',
-        content: 'Hey, how are you?',
-        createdAt: '2025-10-01T10:00:00Z',
-      }
-    },
-    {
-      name: 'Project Team',
-      type: 'group',
-      lastMessage: {
-        sender: 'Bob',
-        content: 'Meeting at 3 PM',
-        createdAt: '2023-10-01T09:30:00Z',
-      }
-    },
-    {
-      name: 'Bob',
-      type: 'direct',
-      lastMessage: {
-        sender: 'John Doe',
-        content: 'Fine!',
-        createdAt: '2023-10-01T10:00:00Z',
-      }
-    },
 
-  ]
+  const processConversations = (res: ResponseProps) => {
+    console.log('Response', res)
 
-  let directConversations = conversationList.filter((c: any) => c.type === 'direct').sort((a: any, b: any) => {
+
+  }
+
+  const newConversationHandler = (res: ResponseProps) => {
+    console.log('New Conversation Created', res)
+    if (res.success && res.data?.isNew) {
+      setConversationList(prev => [...prev, res.data]);
+    }
+  }
+
+  useEffect(() => {
+    getConversations(processConversations);
+    getConversations(null);
+
+    newConversation(newConversationHandler);
+
+    return () => {
+      getConversations(processConversations, true); //turn off listener on unmount
+      newConversation(newConversationHandler, true); //turn off listener on unmount
+    }
+  }, []);
+
+  // const conversationList = [
+  //   {
+  //     name: 'John Doe',
+  //     type: 'direct',
+  //     lastMessage: {
+  //       sender: 'Alice',
+  //       content: 'Hey, how are you?',
+  //       createdAt: '2025-10-01T10:00:00Z',
+  //     }
+  //   },
+  //   {
+  //     name: 'Project Team',
+  //     type: 'group',
+  //     lastMessage: {
+  //       sender: 'Bob',
+  //       content: 'Meeting at 3 PM',
+  //       createdAt: '2023-10-01T09:30:00Z',
+  //     }
+  //   },
+  //   {
+  //     name: 'Bob',
+  //     type: 'direct',
+  //     lastMessage: {
+  //       sender: 'John Doe',
+  //       content: 'Fine!',
+  //       createdAt: '2023-10-01T10:00:00Z',
+  //     }
+  //   },
+
+  // ]
+
+  let directConversations = conversationList.filter((c: ConversationProps) => c.type === 'direct').sort((a: ConversationProps, b: ConversationProps) => {
     const aDate = a?.lastMessage?.createdAt || a.createdAt;
     const bDate = b?.lastMessage?.createdAt || b.createdAt;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
-  let groupConversations = conversationList.filter((c: any) => c.type === 'group').sort((a: any, b: any) => {
+  let groupConversations = conversationList.filter((c: ConversationProps) => c.type === 'group').sort((a: ConversationProps, b: ConversationProps) => {
     const aDate = a?.lastMessage?.createdAt || a.createdAt;
     const bDate = b?.lastMessage?.createdAt || b.createdAt;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
@@ -93,7 +122,7 @@ const Home = () => {
             </View>
             <View style={styles.conversationList}>
               {
-                selectedTab == 0 && directConversations.map((item: any, index) => {
+                selectedTab == 0 && directConversations.map((item: ConversationProps, index) => {
                   return (
                     <ConversationItem item={item} key={index}
                       router={router}
@@ -103,7 +132,7 @@ const Home = () => {
                 })
               }
               {
-                selectedTab == 1 && groupConversations.map((item: any, index) => {
+                selectedTab == 1 && groupConversations.map((item: ConversationProps, index) => {
                   return (
                     <ConversationItem item={item} key={index}
                       router={router}
@@ -139,8 +168,8 @@ const Home = () => {
           pathname: '/(main)/newConversationModal',
           params: { isGroup: selectedTab }
         })}>
-          <Icons.Plus size={verticalScale(24)} color={colors.white} weight='bold' />
-        </Button>
+        <Icons.Plus size={verticalScale(24)} color={colors.white} weight='bold' />
+      </Button>
     </ScreenWrapper>
   )
 }
