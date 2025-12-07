@@ -1,5 +1,5 @@
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
@@ -12,6 +12,8 @@ import Typo from '@/components/Typo';
 import { useAuth } from '@/context/authContext';
 import { verticalScale } from '@/utils/styling';
 import Button from '@/components/Button';
+import { getContacts } from '@/socket/socketEvents';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 
 const NewConversationModal = () => {
@@ -21,7 +23,6 @@ const NewConversationModal = () => {
   const router = useRouter();
   const [groupAvatar, setGroupAvatar] = useState<{ uri: string } | null>(null);
   const [groupName, setGroupName] = useState("");
-
 
   const [isLoading, setIsLoading] = useState(false);
   const createGroup = async () => {
@@ -84,14 +85,33 @@ const NewConversationModal = () => {
     }
   };
 
-  const contacts = [
-    { id: '1', name: 'John Doe', avatar: "https://i.pravatar.cc/150?img=11" },
-    { id: '2', name: 'Jane Smith', avatar: "https://i.pravatar.cc/150?img=12" },
-    { id: '3', name: 'Alice Johnson', avatar: "https://i.pravatar.cc/150?img=13" },
-    { id: '4', name: 'Bob Brown', avatar: "https://i.pravatar.cc/150?img=14" },
-    { id: '5', name: 'Charlie Davis', avatar: "https://i.pravatar.cc/150?img=15" },
-    { id: '6', name: 'Diana Evans', avatar: "https://i.pravatar.cc/150?img=16" },
-  ]
+  // const contacts = [
+  //   { id: '1', name: 'John Doe', avatar: "https://i.pravatar.cc/150?img=11" },
+  //   { id: '2', name: 'Jane Smith', avatar: "https://i.pravatar.cc/150?img=12" },
+  //   { id: '3', name: 'Alice Johnson', avatar: "https://i.pravatar.cc/150?img=13" },
+  //   { id: '4', name: 'Bob Brown', avatar: "https://i.pravatar.cc/150?img=14" },
+  //   { id: '5', name: 'Charlie Davis', avatar: "https://i.pravatar.cc/150?img=15" },
+  //   { id: '6', name: 'Diana Evans', avatar: "https://i.pravatar.cc/150?img=16" },
+  // ]
+
+  const [contacts, setContacts] = useState([]);
+  const processGetContacts = (res: any) => {
+    console.log("Received contacts:", res);
+    if (res?.success) {
+      setContacts(res.contacts);
+    }
+  }
+
+  useEffect(() => {
+    //fetch contacts from socket
+    getContacts(processGetContacts);
+    getContacts(null); //emit event to request contacts
+
+    return () => {
+      getContacts(processGetContacts, true);
+    }
+  }, [])
+
   return (
     <ScreenWrapper isModal={true}>
       <View style={styles.container}>

@@ -35,4 +35,23 @@ export const updateProfile = (payload: any, off: boolean = false) => {
     else{
         socket.emit("updateProfile", payload); //sending payload as data
     }
-}
+};
+
+export const getContacts = (payload: any, off: boolean = false) => {
+    const socket = getSocket();
+    if (!socket) {
+        console.log("Socket not Connected");
+        return;
+    }
+
+    if (off) {
+        //turn off the event listener
+        socket.off("getContacts", payload); //payload is callback 
+    }
+    else if (typeof payload == "function") {
+        socket.on("getContacts", payload); //callback function
+    }
+    else{
+        socket.emit("getContacts", payload); //sending payload as data
+    }
+};
