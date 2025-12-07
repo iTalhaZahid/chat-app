@@ -1,19 +1,19 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
-import Header from '@/components/Header';
-import BackButton from '@/components/BackButton';
 import Avatar from '@/components/Avatar';
-import * as ImagePicker from 'expo-image-picker';
-import Input from '@/components/Input';
-import Typo from '@/components/Typo';
-import { useAuth } from '@/context/authContext';
-import { verticalScale } from '@/utils/styling';
+import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
-import { getContacts } from '@/socket/socketEvents';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import ScreenWrapper from '@/components/ScreenWrapper';
+import Typo from '@/components/Typo';
+import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { useAuth } from '@/context/authContext';
+import { uploadImagetoCloudinary } from '@/services/imageService';
+import { getContacts, newConversation } from '@/socket/socketEvents';
+import { verticalScale } from '@/utils/styling';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 
 const NewConversationModal = () => {
@@ -27,9 +27,35 @@ const NewConversationModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const createGroup = async () => {
     // Logic to create group conversation
-    if (!groupName.trim()) {
+    if (!groupName.trim() || !currentUser || selectedParticipants.length < 2) {
       Alert.alert("Validation Error", "Group name cannot be empty.");
       return;
+    }
+    setIsLoading(true);
+    try {
+
+      let avatar = null;
+      if (groupAvatar) {
+        const uploadResult = await uploadImagetoCloudinary(
+          groupAvatar, 'group-avatars',
+        );
+        if (uploadResult.success) {
+          avatar = uploadResult.data;
+        }
+      }
+      newConversation({
+        type: 'group',
+        participants: [currentUser.id, ...selectedParticipants],
+        name: groupName,
+        avatar: avatar,
+      });
+    } catch (error: any) {
+      console.log("Error Creating Group", error);
+      Alert.alert("Error", error.message || "Failed to create group conversation.");
+
+    }
+    finally {
+      setIsLoading(false);
     }
   }
 
@@ -56,6 +82,11 @@ const NewConversationModal = () => {
 
     } else {
       // Direct conversation logic
+
+      newConversation({
+        type: 'direct',
+        participants: [currentUser.id, user.id],
+      });
     }
   }
 
@@ -101,14 +132,37 @@ const NewConversationModal = () => {
       setContacts(res.contacts);
     }
   }
+  const processNewConversation = (res: any) => {
+    // console.log("New Conversation:", res);
+    setIsLoading(false);
+    if (res?.success) {
+      router.replace({
+        pathname: '/(main)/conversation',
+        params: {
+          id: res.data._id,
+          name: res.data.name,
+          avatar: res.data.avatar,
+          type: res.data.type,
+          participants: JSON.stringify(res.data.participants)
+        }
+      });
+    }
+    else {
+      console.log("Error fetching/creating conversation:", res.msg)
+      Alert.alert("Error", res.msg || "Failed to create conversation.");
+    }
+
+  }
 
   useEffect(() => {
     //fetch contacts from socket
     getContacts(processGetContacts);
     getContacts(null); //emit event to request contacts
+    newConversation(processNewConversation);
 
     return () => {
       getContacts(processGetContacts, true);
+      newConversation(processNewConversation, true);
     }
   }, [])
 
