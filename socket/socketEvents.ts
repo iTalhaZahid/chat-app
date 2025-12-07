@@ -55,3 +55,22 @@ export const getContacts = (payload: any, off: boolean = false) => {
         socket.emit("getContacts", payload); //sending payload as data
     }
 };
+
+export const newConversation = (payload: any, off: boolean = false) => {
+    const socket = getSocket();
+    if (!socket) {
+        console.log("Socket not Connected");
+        return;
+    }
+
+    if (off) {
+        //turn off the event listener
+        socket.off("newConversation", payload); //payload is callback 
+    }
+    else if (typeof payload == "function") {
+        socket.on("newConversation", payload); //callback function
+    }
+    else{
+        socket.emit("newConversation", payload); //sending payload as data
+    }
+};
