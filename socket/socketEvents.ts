@@ -75,6 +75,25 @@ export const newConversation = (payload: any, off: boolean = false) => {
     }
 };
 
+export const newMessage = (payload: any, off: boolean = false) => {
+    const socket = getSocket();
+    if (!socket) {
+        console.log("Socket not Connected");
+        return;
+    }
+
+    if (off) {
+        //turn off the event listener
+        socket.off("newMessage", payload); //payload is callback 
+    }
+    else if (typeof payload == "function") {
+        socket.on("newMessage", payload); //callback function
+    }
+    else{
+        socket.emit("newMessage", payload); //sending payload as data
+    }
+};
+
 export const getConversations = (payload: any, off: boolean = false) => {
     const socket = getSocket();
     if (!socket) {
@@ -91,5 +110,23 @@ export const getConversations = (payload: any, off: boolean = false) => {
     }
     else{
         socket.emit("getConversations", payload); //sending payload as data
+    }
+};
+export const getMessages = (payload: any, off: boolean = false) => {
+    const socket = getSocket();
+    if (!socket) {
+        console.log("Socket not Connected");
+        return;
+    }
+
+    if (off) {
+        //turn off the event listener
+        socket.off("getMessages", payload); //payload is callback 
+    }
+    else if (typeof payload == "function") {
+        socket.on("getMessages", payload); //callback function
+    }
+    else{
+        socket.emit("getMessages", payload); //sending payload as data
     }
 };
