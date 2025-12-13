@@ -23,43 +23,10 @@ const NewConversationModal = () => {
   const router = useRouter();
   const [groupAvatar, setGroupAvatar] = useState<{ uri: string } | null>(null);
   const [groupName, setGroupName] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
-  const createGroup = async () => {
-    // Logic to create group conversation
-    if (!groupName.trim() || !currentUser || selectedParticipants.length < 2) {
-      Alert.alert("Validation Error", "Group name cannot be empty.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-
-      let avatar = null;
-      if (groupAvatar) {
-        const uploadResult = await uploadImagetoCloudinary(
-          groupAvatar, 'group-avatars',
-        );
-        if (uploadResult.success) {
-          avatar = uploadResult.data;
-        }
-      }
-      newConversation({
-        type: 'group',
-        participants: [currentUser.id, ...selectedParticipants],
-        name: groupName,
-        avatar: avatar,
-      });
-    } catch (error: any) {
-      console.log("Error Creating Group", error);
-      Alert.alert("Error", error.message || "Failed to create group conversation.");
-
-    }
-    finally {
-      setIsLoading(false);
-    }
-  }
-
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [contacts, setContacts] = useState([]);
+
 
   const toggleParticipantSelection = (user: any) => {
     setSelectedParticipants((prev: any) => {
@@ -125,17 +92,18 @@ const NewConversationModal = () => {
   //   { id: '6', name: 'Diana Evans', avatar: "https://i.pravatar.cc/150?img=16" },
   // ]
 
-  const [contacts, setContacts] = useState([]);
+
   const processGetContacts = (res: any) => {
     console.log("Received contacts:", res);
     if (res?.success) {
-      setContacts(res.contacts);
+      setContacts(res.data);
     }
   }
+
   const processNewConversation = (res: any) => {
     // console.log("New Conversation:", res);
     setIsLoading(false);
-    if (res?.success) {
+    if (res.success) {
       router.replace({
         pathname: '/(main)/conversation',
         params: {
@@ -153,6 +121,41 @@ const NewConversationModal = () => {
     }
 
   }
+
+  const createGroup = async () => {
+    // Logic to create group conversation
+    if (!groupName.trim() || !currentUser || selectedParticipants.length < 2) {
+      Alert.alert("Validation Error", "Group name cannot be empty.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+
+      let avatar = null;
+      if (groupAvatar) {
+        const uploadResult = await uploadImagetoCloudinary(
+          groupAvatar, 'group-avatars',
+        );
+        if (uploadResult.success) {
+          avatar = uploadResult.data;
+        }
+      }
+      newConversation({
+        type: 'group',
+        participants: [currentUser.id, ...selectedParticipants],
+        name: groupName,
+        avatar: avatar,
+      });
+    } catch (error: any) {
+      console.log("Error Creating Group", error);
+      Alert.alert("Error", error.message || "Failed to create group conversation.");
+
+    }
+    finally {
+      setIsLoading(false);
+    }
+  }
+
 
   useEffect(() => {
     //fetch contacts from socket

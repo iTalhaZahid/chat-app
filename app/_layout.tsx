@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "@/context/authContext";
 import "../global.css"
-
+import { StatusBar } from 'expo-status-bar';
 const StackLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }} >
@@ -14,6 +14,7 @@ const StackLayout = () => {
 const RootLayout = () => {
   return (
     <AuthProvider>
+      <StatusBar style="auto" />
       <StackLayout />
     </AuthProvider>
   )

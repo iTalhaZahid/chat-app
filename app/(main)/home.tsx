@@ -10,78 +10,92 @@ import * as Icons from 'phosphor-react-native';
 import { useRouter } from 'expo-router'
 import ConversationItem from '@/components/ConversationItem'
 import Loading from '@/components/Loading'
-import { getConversations, newConversation } from '@/socket/socketEvents'
+import { getConversations, newConversation, newMessage } from '@/socket/socketEvents'
 import { ConversationProps, ResponseProps } from '@/types'
 
 const Home = () => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [conversationList, setConversationList] = useState<ConversationProps[]>([]);
+  const [conversations, setConversations] = useState<ConversationProps[]>([]);
 
+
+  // const processConversations = (res: ResponseProps) => {
+  //   console.log('Response', res)
+
+  //   if (res.success && res.data?.isNew) {
+  //     // setConversations(prev => [...prev, res.data]);
+  //     setConversations(res.data);
+  //   }
+
+  // }
 
   const processConversations = (res: ResponseProps) => {
-    console.log('Response', res)
+    console.log('Response', res);
 
+    if (!res?.success) return;
+    if (res.success) {
+      setConversations(res.data)
+    }
 
-  }
+    // If backend returns an array (initial fetch)
+    // if (Array.isArray(res.data)) {
+    //   setConversations(res.data);
+    //   return;
+    // }
+
+    // If, in some case, backend sends a single conversation object
+    // if (res.data) {
+    //   setConversations(prev => {
+    //     const exists = prev.find(c => c._id === res.data._id);
+    //     if (exists) return prev;
+    //     return [res.data, ...prev];
+    //   });
+    // }
+  };
+
 
   const newConversationHandler = (res: ResponseProps) => {
     console.log('New Conversation Created', res)
     if (res.success && res.data?.isNew) {
-      setConversationList(prev => [...prev, res.data]);
+      setConversations(prev => [...prev, res.data,]);
+    }
+  }
+
+  const newMessageHandler = (res: ResponseProps) => {
+    if (res.success) {
+      let conversationId = res.data.conversationId;
+      setConversations(prev => {
+        let updatedConversations = prev.map(c => {
+          if (c._id === conversationId) {
+           c.lastMessage=res.data;
+          }
+          return c;
+        });
+        return updatedConversations;
+      });
     }
   }
 
   useEffect(() => {
     getConversations(processConversations);
     getConversations(null);
-
+    newMessage(newMessageHandler);
     newConversation(newConversationHandler);
 
     return () => {
       getConversations(processConversations, true); //turn off listener on unmount
       newConversation(newConversationHandler, true); //turn off listener on unmount
+      newMessage(newMessageHandler, true); //turn off listener on unmount
     }
   }, []);
 
-  // const conversationList = [
-  //   {
-  //     name: 'John Doe',
-  //     type: 'direct',
-  //     lastMessage: {
-  //       sender: 'Alice',
-  //       content: 'Hey, how are you?',
-  //       createdAt: '2025-10-01T10:00:00Z',
-  //     }
-  //   },
-  //   {
-  //     name: 'Project Team',
-  //     type: 'group',
-  //     lastMessage: {
-  //       sender: 'Bob',
-  //       content: 'Meeting at 3 PM',
-  //       createdAt: '2023-10-01T09:30:00Z',
-  //     }
-  //   },
-  //   {
-  //     name: 'Bob',
-  //     type: 'direct',
-  //     lastMessage: {
-  //       sender: 'John Doe',
-  //       content: 'Fine!',
-  //       createdAt: '2023-10-01T10:00:00Z',
-  //     }
-  //   },
-
-  // ]
-
-  let directConversations = conversationList.filter((c: ConversationProps) => c.type === 'direct').sort((a: ConversationProps, b: ConversationProps) => {
+  let directConversations = conversations.filter((c: ConversationProps) => c.type == 'direct').sort((a: ConversationProps, b: ConversationProps) => {
     const aDate = a?.lastMessage?.createdAt || a.createdAt;
     const bDate = b?.lastMessage?.createdAt || b.createdAt;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
-  let groupConversations = conversationList.filter((c: ConversationProps) => c.type === 'group').sort((a: ConversationProps, b: ConversationProps) => {
+  let groupConversations = conversations.filter((c: ConversationProps) => c.type == 'group').sort((a: ConversationProps, b: ConversationProps) => {
     const aDate = a?.lastMessage?.createdAt || a.createdAt;
     const bDate = b?.lastMessage?.createdAt || b.createdAt;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
