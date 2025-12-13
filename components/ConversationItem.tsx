@@ -8,18 +8,20 @@ import { ConversationListItemProps } from '@/types'
 import { useAuth } from '@/context/authContext'
 
 const ConversationItem = ({ item, showDivider, router }: ConversationListItemProps) => {
+    
+    const lastMessage: any = item?.lastMessage;
+    const isDirect = item?.type === 'direct';
+    const { user: currentUser } = useAuth();
+    let avatar=item.avatar;
 
+    const otherParticipants = isDirect ? item.participants.find(p =>  p._id != currentUser?.id ) : null;
+    
     const getLastMessageContent = () => {
         if (!lastMessage) return 'Say Hi!👋';
 
-        return lastMessage?.attachment ? "Image" : lastMessage?.content;
+        return lastMessage?.attachment ? "Image" : lastMessage.content;
     }
 
-    const { user: currentUser } = useAuth();
-    const lastMessage: any = item?.lastMessage;
-    const isDirect = item?.type === 'direct';
-    let avatar = item?.avatar;
-    const otherParticipants = isDirect ? item.participants.find(p => { p._id != currentUser?.id }) : null;
     if (isDirect && otherParticipants) {
         avatar = otherParticipants?.avatar;
     }
@@ -60,7 +62,7 @@ const ConversationItem = ({ item, showDivider, router }: ConversationListItemPro
                 </View>
                 <View className='flex-1'>
                     <View style={styles.row}>
-                        <Typo size={17} fontWeight={'bold'}>{isDirect ? otherParticipants?.name : item?.name}</Typo>
+                        <Typo size={17} fontWeight={'600'}>{isDirect ? otherParticipants?.name : item?.name}</Typo>
                         {item?.lastMessage && <Typo size={15}>{getLastMessageDate()}</Typo>}
 
                     </View>
