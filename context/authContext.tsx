@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from 'jwt-decode';
-import { connectSocket } from "@/socket/socket";
+import { connectSocket, disconnectSocket } from "@/socket/socket";
 
 export const AuthContext = createContext<AuthContextProps>({
     token: null,
@@ -37,10 +37,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     goToWelcomePage();
                     return;
                 }
+                // setToken(storedToken);
+                // setUser(decodedUser.user);
 
                 // 🔗 connect socket here (token already in AsyncStorage)
                 try {
+                    disconnectSocket();          // 🔹 ADD
                     await connectSocket();
+
                 } catch (err) {
                     console.log("Socket connection failed on loadToken:", err);
                 }
@@ -72,14 +76,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const updateToken = async (token: string) => {
-        if (token) {
-            setToken(token);
-            await AsyncStorage.setItem("token", token);
-            const decodedUser = jwtDecode<DecodedTokenProps>(token); //decode token to get user info
-            console.log("Decoded User: ", decodedUser);
-            setUser(decodedUser.user);
+        if (!token) {
+            console.log("updateToken: token missing/undefined");
+            return;
         }
-    }
+
+        await AsyncStorage.setItem("token", token);
+        const decodedUser = jwtDecode<DecodedTokenProps>(token);
+        setToken(token);
+        setUser(decodedUser.user);
+
+        try {
+            disconnectSocket();
+            await connectSocket();
+        } catch (err) {
+            console.log("Socket connection failed on updateToken:", err);
+        }
+    };
+    // if (token) {
+    //     setToken(token);
+    //     await AsyncStorage.setItem("token", token);
+    //     const decodedUser = jwtDecode<DecodedTokenProps>(token); //decode token to get user info
+    //     console.log("Decoded User: ", decodedUser);
+    //     setUser(decodedUser.user);
+    // }
+    // }
 
     const signIn = async (email: string, password: string) => {
         // Perform SignIn Logic Here
@@ -91,13 +112,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const signUp = async (email: string, password: string, name: string, avatar?: string | null) => {
         // Perform SignUp Logic Here
         const response = await register(email, password, name, avatar);
-        await updateToken(response.token);
-        router.replace("/(main)/home");
+        // await updateToken(response.token);
+        router.push({ pathname: "/(auth)/otpScreen", params: { flow: "register", email: email } });
     }
 
     const signOut = async () => {
         setToken(null);
         setUser(null);
+        disconnectSocket();
         await AsyncStorage.removeItem("token");
         router.replace("/(auth)/login");
     }
