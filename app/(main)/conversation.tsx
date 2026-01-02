@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageContent: {
-    flex: 1,
+    // flex: 1,
     paddingTop: spacingY._20,
     paddingBottom: spacingY._10,
     gap: spacingY._12,
