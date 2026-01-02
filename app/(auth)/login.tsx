@@ -30,7 +30,7 @@ const LoginIn = () => {
     } catch (error:any) {
        Alert.alert("Login", error.message || "Something went wrong");
     }
-    finally{
+    finally {
       setIsLoading(false);
     }
   }
@@ -38,12 +38,14 @@ const LoginIn = () => {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? "padding" : "height"}>
       <ScreenWrapper>
         <View className='flex-1 justify-between'>
-          
+
           {/* Header Section */}
 
           <View style={styles.header}>
             <BackButton iconSize={28} />
-            <Typo size={17} color={colors.white}>Forgot your Password?</Typo>
+            <Pressable onPress={() => router.push("/(auth)/resetPassword")}>
+              <Typo size={17} color={colors.white}>Forgot your Password?</Typo>
+            </Pressable>
           </View>
           <View style={styles.content}>
             <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>

@@ -78,9 +78,7 @@ const Conversation = () => {
   const [selectedFile, setSelectedFile] = useState<{ uri: string } | null>(null);
   const onPickFile = async () => {
     // Pick image from gallery
-
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permissionResult.granted) {
       Alert.alert('Permission required', 'Permission to access the media library is required.');
       return;
@@ -115,10 +113,10 @@ const Conversation = () => {
     // if (msg.conversationId !== conversationId) return;
     // setMessages(prev => [msg, ...prev]);
     if (res.success) {
-      if(res.data.conversationId === conversationId) {
+      if (res.data.conversationId === conversationId) {
         setMessages(prev => [res.data as MessageProps, ...prev]);
       }
-      else{
+      else {
         Alert.alert("New Message", res.msg);
       }
     }
@@ -311,6 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageContent: {
+    flex: 1,
     paddingTop: spacingY._20,
     paddingBottom: spacingY._10,
     gap: spacingY._12,

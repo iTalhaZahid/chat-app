@@ -155,9 +155,8 @@ const Settings = () => {
                 <ScrollView style={styles.form}>
                     <View style={styles.avatarContainer}>
                         {/* Select Avatar */}
-                        <Avatar uri={userData.avatar} size={140} />
                         <TouchableOpacity onPress={pickImage}>
-                            <Icons.Pencil size={verticalScale(22)} color={colors.neutral800} style={styles.editIcon} />
+                            <Avatar uri={userData.avatar} size={140} />
                         </TouchableOpacity>
                     </View>
                     <View style={{ gap: spacingY._20 }}>

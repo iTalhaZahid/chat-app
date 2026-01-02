@@ -21,19 +21,23 @@ const Register = () => {
 
 
   const handleSubmit = async () => {
-    if(!nameRef.current || !emailRef.current || !passwordRef.current) {
+    if (!nameRef.current || !emailRef.current || !passwordRef.current) {
       Alert.alert("Sign Up", "Please fill all the fields");
       return;
     }
-   try {
-     setIsLoading(true);
-     // Perform Registration Logic Here
-      await signUp(emailRef.current, passwordRef.current, nameRef.current,"");
-   } catch (error:any) {
-    Alert.alert("Sign Up", error.message || "Something went wrong");
-   }finally{
-    setIsLoading(false);
-   }
+    if (passwordRef.current.length < 8) {
+      Alert.alert("Sign Up", "Password must be at least 8 characters long");
+      return;
+    }
+    try {
+      setIsLoading(true);
+      // Perform Registration Logic Here
+      await signUp(emailRef.current, passwordRef.current, nameRef.current, "");
+    } catch (error: any) {
+      Alert.alert("Sign Up", error.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
 
   }
   return (
